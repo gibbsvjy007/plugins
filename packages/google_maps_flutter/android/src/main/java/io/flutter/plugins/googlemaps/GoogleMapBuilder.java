@@ -4,38 +4,57 @@
 
 package io.flutter.plugins.googlemaps;
 
+import android.content.Context;
+import android.graphics.Rect;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLngBounds;
-import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class GoogleMapBuilder implements GoogleMapOptionsSink {
   private final GoogleMapOptions options = new GoogleMapOptions();
   private boolean trackCameraPosition = false;
+  private boolean myLocationEnabled = false;
+  private boolean myLocationButtonEnabled = false;
+  private boolean indoorEnabled = true;
+  private boolean trafficEnabled = false;
+  private Object initialMarkers;
+  private Object initialPolygons;
+  private Object initialPolylines;
+  private Object initialCircles;
+  private Rect padding = new Rect(0, 0, 0, 0);
 
   GoogleMapController build(
-      AtomicInteger state,
-      PluginRegistry.Registrar registrar,
-      int width,
-      int height,
-      MethodChannel.Result result) {
+      int id, Context context, AtomicInteger state, PluginRegistry.Registrar registrar) {
     final GoogleMapController controller =
-        new GoogleMapController(state, registrar, width, height, options, result);
+        new GoogleMapController(id, context, state, registrar, options);
     controller.init();
+    controller.setMyLocationEnabled(myLocationEnabled);
+    controller.setMyLocationButtonEnabled(myLocationButtonEnabled);
+    controller.setIndoorEnabled(indoorEnabled);
+    controller.setTrafficEnabled(trafficEnabled);
     controller.setTrackCameraPosition(trackCameraPosition);
+    controller.setInitialMarkers(initialMarkers);
+    controller.setInitialPolygons(initialPolygons);
+    controller.setInitialPolylines(initialPolylines);
+    controller.setInitialCircles(initialCircles);
+    controller.setPadding(padding.top, padding.left, padding.bottom, padding.right);
     return controller;
   }
 
-  @Override
-  public void setCameraPosition(CameraPosition position) {
+  void setInitialCameraPosition(CameraPosition position) {
     options.camera(position);
   }
 
   @Override
   public void setCompassEnabled(boolean compassEnabled) {
     options.compassEnabled(compassEnabled);
+  }
+
+  @Override
+  public void setMapToolbarEnabled(boolean setMapToolbarEnabled) {
+    options.mapToolbarEnabled(setMapToolbarEnabled);
   }
 
   @Override
@@ -56,6 +75,11 @@ class GoogleMapBuilder implements GoogleMapOptionsSink {
     if (max != null) {
       options.maxZoomPreference(max);
     }
+  }
+
+  @Override
+  public void setPadding(float top, float left, float bottom, float right) {
+    this.padding = new Rect((int) left, (int) top, (int) right, (int) bottom);
   }
 
   @Override
@@ -81,5 +105,45 @@ class GoogleMapBuilder implements GoogleMapOptionsSink {
   @Override
   public void setZoomGesturesEnabled(boolean zoomGesturesEnabled) {
     options.zoomGesturesEnabled(zoomGesturesEnabled);
+  }
+
+  @Override
+  public void setIndoorEnabled(boolean indoorEnabled) {
+    this.indoorEnabled = indoorEnabled;
+  }
+
+  @Override
+  public void setTrafficEnabled(boolean trafficEnabled) {
+    this.trafficEnabled = trafficEnabled;
+  }
+
+  @Override
+  public void setMyLocationEnabled(boolean myLocationEnabled) {
+    this.myLocationEnabled = myLocationEnabled;
+  }
+
+  @Override
+  public void setMyLocationButtonEnabled(boolean myLocationButtonEnabled) {
+    this.myLocationButtonEnabled = myLocationButtonEnabled;
+  }
+
+  @Override
+  public void setInitialMarkers(Object initialMarkers) {
+    this.initialMarkers = initialMarkers;
+  }
+
+  @Override
+  public void setInitialPolygons(Object initialPolygons) {
+    this.initialPolygons = initialPolygons;
+  }
+
+  @Override
+  public void setInitialPolylines(Object initialPolylines) {
+    this.initialPolylines = initialPolylines;
+  }
+
+  @Override
+  public void setInitialCircles(Object initialCircles) {
+    this.initialCircles = initialCircles;
   }
 }

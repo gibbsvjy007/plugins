@@ -1,3 +1,90 @@
+## 0.5.4+4
+
+* `setMockInitialValues` needs to handle non-prefixed keys since that's an implementation detail.
+
+## 0.5.4+3
+
+* Android: Suppress casting warnings.
+
+## 0.5.4+2
+
+* Remove AndroidX warnings.
+
+## 0.5.4+1
+
+* Include lifecycle dependency as a compileOnly one on Android to resolve
+  potential version conflicts with other transitive libraries.
+
+## 0.5.4
+
+* Support the v2 Android embedding.
+* Update to AndroidX.
+* Migrate to using the new e2e test binding.
+
+## 0.5.3+5
+
+* Define clang module for iOS.
+
+## 0.5.3+4
+
+* Copy `List` instances when reading and writing values to prevent mutations from propagating.
+
+## 0.5.3+3
+
+* `setMockInitialValues` can now be called multiple times and will
+  `reload()` the singleton if necessary.
+
+## 0.5.3+2
+
+* Fix Gradle version.
+
+## 0.5.3+1
+
+* Add missing template type parameter to `invokeMethod` calls.
+* Bump minimum Flutter version to 1.5.0.
+* Replace invokeMethod with invokeMapMethod wherever necessary.
+
+## 0.5.3
+
+* Add reload method.
+
+## 0.5.2+2
+
+* Updated Gradle tooling to match Android Studio 3.4.
+
+## 0.5.2+1
+
+* .commit() calls are now run in an async background task on Android.
+
+## 0.5.2
+
+* Add containsKey method.
+
+## 0.5.1+2
+
+* Add a driver test
+
+## 0.5.1+1
+
+* Log a more detailed warning at build time about the previous AndroidX
+  migration.
+
+## 0.5.1
+
+* Use String to save double in Android.
+
+## 0.5.0
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+## 0.4.3
+
+* Prevent strings that match special prefixes from being saved. This is a bugfix that prevents apps from accidentally setting special values that would be interpreted incorrectly.
+
 ## 0.4.2
 
 * Updated Gradle tooling to match Android Studio 3.1.2.

@@ -1,3 +1,51 @@
+## 0.4.1+2
+
+* Remove AndroidX warning.
+
+## 0.4.1+1
+
+* Include lifecycle dependency as a compileOnly one on Android to resolve
+  potential version conflicts with other transitive libraries.
+
+## 0.4.1
+
+* Support the v2 Android embedding.
+* Update to AndroidX.
+* Migrate to using the new e2e test binding.
+* Add a e2e test.
+
+
+## 0.4.0+4
+
+* Define clang module for iOS.
+
+## 0.4.0+3
+
+* Update and migrate iOS example project.
+
+## 0.4.0+2
+
+* Bump minimum Flutter version to 1.5.0.
+* Add missing template type parameter to `invokeMethod` calls.
+* Replace invokeMethod with invokeMapMethod wherever necessary.
+
+## 0.4.0+1
+
+* Log a more detailed warning at build time about the previous AndroidX
+  migration.
+
+## 0.4.0
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+## 0.3.0
+
+* Added ability to get Android ID for Android devices
+
 ## 0.2.1
 
 * Updated Gradle tooling to match Android Studio 3.1.2.

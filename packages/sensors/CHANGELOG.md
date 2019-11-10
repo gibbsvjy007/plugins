@@ -1,3 +1,45 @@
+## 0.4.1+2
+
+* Remove AndroidX warnings.
+
+## 0.4.1+1
+
+* Include lifecycle dependency as a compileOnly one on Android to resolve
+  potential version conflicts with other transitive libraries.
+
+## 0.4.1
+
+* Support the v2 Android embedder.
+* Update to AndroidX.
+* Migrate to using the new e2e test binding.
+* Add a e2e test.
+
+## 0.4.0+3
+
+* Update and migrate iOS example project.
+* Define clang module for iOS.
+
+## 0.4.0+2
+
+* Suppress deprecation warning for BinaryMessages. See: https://github.com/flutter/flutter/issues/33446
+
+## 0.4.0+1
+
+* Log a more detailed warning at build time about the previous AndroidX
+  migration.
+
+## 0.4.0
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+## 0.3.5
+
+* Added missing test package dependency.
+
 ## 0.3.4
 
 * Make sensors Dart 2 compliant.

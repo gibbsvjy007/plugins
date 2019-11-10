@@ -1,3 +1,132 @@
+## 4.0.11
+
+* Update iOS CocoaPod dependency to 5.0 to fix deprecated API usage issue.
+
+## 4.0.10
+
+* Remove AndroidX warning.
+
+## 4.0.9
+
+* Update and migrate iOS example project.
+* Define clang module for iOS.
+
+## 4.0.8
+
+* Get rid of `MethodCompleter` and serialize async actions using chained futures.
+  This prevents a bug when sign in methods are being used in error handling zones.
+
+## 4.0.7
+
+* Switch from using `api` to `implementation` for dependency on `play-services-auth`,
+  preventing version mismatch build failures in some Android configurations.
+
+## 4.0.6
+
+* Fixed the `PlatformException` leaking from `catchError()` in debug mode.
+
+## 4.0.5
+
+* Update README with solution to `APIException` errors.
+
+## 4.0.4
+
+* Revert changes in 4.0.3.
+
+## 4.0.3
+
+* Update guava to `27.0.1-android`.	
+* Add correct @NonNull annotations to reduce compiler warnings.	
+
+## 4.0.2
+
+* Add missing template type parameter to `invokeMethod` calls.
+* Bump minimum Flutter version to 1.5.0.
+* Replace invokeMethod with invokeMapMethod wherever necessary.
+
+## 4.0.1+3
+
+* Update example to gracefully handle null user information.
+
+## 4.0.1+2
+
+* Fix README.md to correctly spell `GoogleService-Info.plist`.
+
+## 4.0.1+1
+
+* Remove categories.
+
+## 4.0.1
+
+* Log a more detailed warning at build time about the previous AndroidX
+  migration.
+
+## 4.0.0+1
+
+* Added a better error message for iOS when the app is missing necessary URL schemes.
+
+## 4.0.0
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+  This was originally incorrectly pushed in the `3.3.0` update.
+
+## 3.3.0+1
+
+* **Revert the breaking 3.3.0 update**. 3.3.0 was known to be breaking and
+  should have incremented the major version number instead of the minor. This
+  revert is in and of itself breaking for anyone that has already migrated
+  however. Anyone who has already migrated their app to AndroidX should
+  immediately update to `4.0.0` instead. That's the correctly versioned new push
+  of `3.3.0`.
+
+## 3.3.0
+
+* **BAD**. This was a breaking change that was incorrectly published on a minor
+  version upgrade, should never have happened. Reverted by 3.3.0+1.
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+## 3.2.4
+
+* Increase play-services-auth version to 16.0.1
+
+## 3.2.3
+
+* Change google-services.json and GoogleService-Info.plist of example.
+
+## 3.2.2
+
+* Don't use the result code when handling signin. This results in better error codes because result code always returns "cancelled".
+
+## 3.2.1
+
+* Set http version to be compatible with flutter_test.
+
+## 3.2.0
+
+* Add support for clearing authentication cache for Android.
+
+## 3.1.0
+
+* Add support to recover authentication for Android.
+
+## 3.0.6
+
+* Remove flaky displayName assertion
+
+## 3.0.5
+
+* Added missing http package dependency.
+
 ## 3.0.4
 
 * Updated Gradle tooling to match Android Studio 3.1.2.

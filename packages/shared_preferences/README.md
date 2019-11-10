@@ -17,12 +17,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(new MaterialApp(
-    home: new Scaffold(
-      body: new Center(
-      child: new RaisedButton(
+  runApp(MaterialApp(
+    home: Scaffold(
+      body: Center(
+      child: RaisedButton(
         onPressed: _incrementCounter,
-        child: new Text('Increment Counter'),
+        child: Text('Increment Counter'),
         ),
       ),
     ),
@@ -41,12 +41,6 @@ _incrementCounter() async {
 
 You can populate `SharedPreferences` with initial values in your tests by running this code:
 
-```
-const MethodChannel('plugins.flutter.io/shared_preferences')
-  .setMockMethodCallHandler((MethodCall methodCall) async {
-    if (methodCall.method == 'getAll') {
-      return <String, dynamic>{}; // set initial values here if desired
-    }
-    return null;
-  });
+```dart
+SharedPrefernces.setMockInitialValues (Map<String, dynamic> values);
 ```

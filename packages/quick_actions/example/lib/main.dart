@@ -6,59 +6,71 @@ import 'package:flutter/material.dart';
 import 'package:quick_actions/quick_actions.dart';
 
 void main() {
-  runApp(new MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      title: 'Flutter Demo',
-      theme: new ThemeData(
+    return MaterialApp(
+      title: 'Flutter Quick Actions Demo',
+      theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+  MyHomePage({Key key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String shortcut = "no action set";
+
   @override
   void initState() {
     super.initState();
-    final QuickActions quickActions = const QuickActions();
+
+    final QuickActions quickActions = QuickActions();
     quickActions.initialize((String shortcutType) {
-      if (shortcutType == 'action_main') {
-        print('The user tapped on the "Main view" action.');
-      }
+      setState(() {
+        if (shortcutType != null) shortcut = shortcutType;
+      });
     });
 
     quickActions.setShortcutItems(<ShortcutItem>[
+      // NOTE: This first action icon will only work on iOS.
+      // In a real world project keep the same file name for both platforms.
       const ShortcutItem(
-          type: 'action_main', localizedTitle: 'Main view', icon: 'AppIcon'),
+        type: 'action_one',
+        localizedTitle: 'Action one',
+        icon: 'AppIcon',
+      ),
+      // NOTE: This second action icon will only work on Android.
+      // In a real world project keep the same file name for both platforms.
+      const ShortcutItem(
+          type: 'action_two',
+          localizedTitle: 'Action two',
+          icon: 'ic_launcher'),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: const Text('Plugin example app'),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$shortcut'),
       ),
       body: const Center(
-          child: Text('On home screen, long press the icon to '
-              'get Main view action. Tapping on that action should print '
-              'a message to the log.')),
+        child: Text('On home screen, long press the app icon to '
+            'get Action one or Action two options. Tapping on that action should  '
+            'set the toolbar title.'),
+      ),
     );
   }
 }

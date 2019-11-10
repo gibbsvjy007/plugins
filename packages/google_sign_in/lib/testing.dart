@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2019 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -15,9 +15,9 @@ import 'package:flutter/services.dart' show MethodCall;
 /// FakeSignInBackend fakeSignInBackend;
 ///
 /// setUp(() {
-///   googleSignIn = new GoogleSignIn();
-///   fakeSignInBackend = new FakeSignInBackend();
-///   fakeSignInBackend.user = new FakeUser(
+///   googleSignIn = GoogleSignIn();
+///   fakeSignInBackend = FakeSignInBackend();
+///   fakeSignInBackend.user = FakeUser(
 ///     id: 123,
 ///     email: 'jdoe@example.org',
 ///   );

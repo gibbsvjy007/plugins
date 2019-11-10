@@ -15,26 +15,26 @@ import 'package:video_player/video_player.dart';
 ///
 /// Plays (looping) on initialization, and mutes on deactivation.
 class VideoPlayPause extends StatefulWidget {
-  final VideoPlayerController controller;
-
   VideoPlayPause(this.controller);
+
+  final VideoPlayerController controller;
 
   @override
   State createState() {
-    return new _VideoPlayPauseState();
+    return _VideoPlayPauseState();
   }
 }
 
 class _VideoPlayPauseState extends State<VideoPlayPause> {
-  FadeAnimation imageFadeAnim =
-      new FadeAnimation(child: const Icon(Icons.play_arrow, size: 100.0));
-  VoidCallback listener;
-
   _VideoPlayPauseState() {
     listener = () {
       setState(() {});
     };
   }
+
+  FadeAnimation imageFadeAnim =
+      FadeAnimation(child: const Icon(Icons.play_arrow, size: 100.0));
+  VoidCallback listener;
 
   VideoPlayerController get controller => widget.controller;
 
@@ -56,38 +56,38 @@ class _VideoPlayPauseState extends State<VideoPlayPause> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> children = <Widget>[
-      new GestureDetector(
-        child: new VideoPlayer(controller),
+      GestureDetector(
+        child: VideoPlayer(controller),
         onTap: () {
           if (!controller.value.initialized) {
             return;
           }
           if (controller.value.isPlaying) {
             imageFadeAnim =
-                new FadeAnimation(child: const Icon(Icons.pause, size: 100.0));
+                FadeAnimation(child: const Icon(Icons.pause, size: 100.0));
             controller.pause();
           } else {
-            imageFadeAnim = new FadeAnimation(
-                child: const Icon(Icons.play_arrow, size: 100.0));
+            imageFadeAnim =
+                FadeAnimation(child: const Icon(Icons.play_arrow, size: 100.0));
             controller.play();
           }
         },
       ),
-      new Align(
+      Align(
         alignment: Alignment.bottomCenter,
-        child: new VideoProgressIndicator(
+        child: VideoProgressIndicator(
           controller,
           allowScrubbing: true,
         ),
       ),
-      new Center(child: imageFadeAnim),
-      new Center(
+      Center(child: imageFadeAnim),
+      Center(
           child: controller.value.isBuffering
               ? const CircularProgressIndicator()
               : null),
     ];
 
-    return new Stack(
+    return Stack(
       fit: StackFit.passthrough,
       children: children,
     );
@@ -95,14 +95,14 @@ class _VideoPlayPauseState extends State<VideoPlayPause> {
 }
 
 class FadeAnimation extends StatefulWidget {
-  final Widget child;
-  final Duration duration;
-
   FadeAnimation(
       {this.child, this.duration = const Duration(milliseconds: 500)});
 
+  final Widget child;
+  final Duration duration;
+
   @override
-  _FadeAnimationState createState() => new _FadeAnimationState();
+  _FadeAnimationState createState() => _FadeAnimationState();
 }
 
 class _FadeAnimationState extends State<FadeAnimation>
@@ -113,7 +113,7 @@ class _FadeAnimationState extends State<FadeAnimation>
   void initState() {
     super.initState();
     animationController =
-        new AnimationController(duration: widget.duration, vsync: this);
+        AnimationController(duration: widget.duration, vsync: this);
     animationController.addListener(() {
       if (mounted) {
         setState(() {});
@@ -145,11 +145,11 @@ class _FadeAnimationState extends State<FadeAnimation>
   @override
   Widget build(BuildContext context) {
     return animationController.isAnimating
-        ? new Opacity(
+        ? Opacity(
             opacity: 1.0 - animationController.value,
             child: widget.child,
           )
-        : new Container();
+        : Container();
   }
 }
 
@@ -157,10 +157,10 @@ typedef Widget VideoWidgetBuilder(
     BuildContext context, VideoPlayerController controller);
 
 abstract class PlayerLifeCycle extends StatefulWidget {
+  PlayerLifeCycle(this.dataSource, this.childBuilder);
+
   final VideoWidgetBuilder childBuilder;
   final String dataSource;
-
-  PlayerLifeCycle(this.dataSource, this.childBuilder);
 }
 
 /// A widget connecting its life cycle to a [VideoPlayerController] using
@@ -170,8 +170,7 @@ class NetworkPlayerLifeCycle extends PlayerLifeCycle {
       : super(dataSource, childBuilder);
 
   @override
-  _NetworkPlayerLifeCycleState createState() =>
-      new _NetworkPlayerLifeCycleState();
+  _NetworkPlayerLifeCycleState createState() => _NetworkPlayerLifeCycleState();
 }
 
 /// A widget connecting its life cycle to a [VideoPlayerController] using
@@ -181,7 +180,7 @@ class AssetPlayerLifeCycle extends PlayerLifeCycle {
       : super(dataSource, childBuilder);
 
   @override
-  _AssetPlayerLifeCycleState createState() => new _AssetPlayerLifeCycleState();
+  _AssetPlayerLifeCycleState createState() => _AssetPlayerLifeCycleState();
 }
 
 abstract class _PlayerLifeCycleState extends State<PlayerLifeCycle> {
@@ -226,37 +225,39 @@ abstract class _PlayerLifeCycleState extends State<PlayerLifeCycle> {
 class _NetworkPlayerLifeCycleState extends _PlayerLifeCycleState {
   @override
   VideoPlayerController createVideoPlayerController() {
-    return new VideoPlayerController.network(widget.dataSource);
+    return VideoPlayerController.network(widget.dataSource);
   }
 }
 
 class _AssetPlayerLifeCycleState extends _PlayerLifeCycleState {
   @override
   VideoPlayerController createVideoPlayerController() {
-    return new VideoPlayerController.asset(widget.dataSource);
+    return VideoPlayerController.asset(widget.dataSource);
   }
 }
 
 /// A filler card to show the video in a list of scrolling contents.
 Widget buildCard(String title) {
-  return new Card(
-    child: new Column(
+  return Card(
+    child: Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        new ListTile(
+        ListTile(
           leading: const Icon(Icons.airline_seat_flat_angled),
-          title: new Text(title),
+          title: Text(title),
         ),
-        new ButtonTheme.bar(
-          child: new ButtonBar(
+        // TODO(jackson): Remove when deprecation is on stable branch
+        // ignore: deprecated_member_use
+        ButtonTheme.bar(
+          child: ButtonBar(
             children: <Widget>[
-              new FlatButton(
+              FlatButton(
                 child: const Text('BUY TICKETS'),
                 onPressed: () {
                   /* ... */
                 },
               ),
-              new FlatButton(
+              FlatButton(
                 child: const Text('SELL TICKETS'),
                 onPressed: () {
                   /* ... */
@@ -271,13 +272,13 @@ Widget buildCard(String title) {
 }
 
 class VideoInListOfCards extends StatelessWidget {
-  final VideoPlayerController controller;
-
   VideoInListOfCards(this.controller);
+
+  final VideoPlayerController controller;
 
   @override
   Widget build(BuildContext context) {
-    return new ListView(
+    return ListView(
       children: <Widget>[
         buildCard("Item a"),
         buildCard("Item b"),
@@ -286,20 +287,20 @@ class VideoInListOfCards extends StatelessWidget {
         buildCard("Item e"),
         buildCard("Item f"),
         buildCard("Item g"),
-        new Card(
-            child: new Column(children: <Widget>[
-          new Column(
+        Card(
+            child: Column(children: <Widget>[
+          Column(
             children: <Widget>[
               const ListTile(
                 leading: Icon(Icons.cake),
                 title: Text("Video video"),
               ),
-              new Stack(
+              Stack(
                   alignment: FractionalOffset.bottomRight +
                       const FractionalOffset(-0.1, -0.1),
                   children: <Widget>[
-                    new AspectRatioVideo(controller),
-                    new Image.asset('assets/flutter-mark-square-64.png'),
+                    AspectRatioVideo(controller),
+                    Image.asset('assets/flutter-mark-square-64.png'),
                   ]),
             ],
           ),
@@ -315,12 +316,12 @@ class VideoInListOfCards extends StatelessWidget {
 }
 
 class AspectRatioVideo extends StatefulWidget {
-  final VideoPlayerController controller;
-
   AspectRatioVideo(this.controller);
 
+  final VideoPlayerController controller;
+
   @override
-  AspectRatioVideoState createState() => new AspectRatioVideoState();
+  AspectRatioVideoState createState() => AspectRatioVideoState();
 }
 
 class AspectRatioVideoState extends State<AspectRatioVideo> {
@@ -347,63 +348,81 @@ class AspectRatioVideoState extends State<AspectRatioVideo> {
   @override
   Widget build(BuildContext context) {
     if (initialized) {
-      final Size size = controller.value.size;
-      return new Center(
-        child: new AspectRatio(
-          aspectRatio: size.width / size.height,
-          child: new VideoPlayPause(controller),
+      return Center(
+        child: AspectRatio(
+          aspectRatio: controller.value.aspectRatio,
+          child: VideoPlayPause(controller),
         ),
       );
     } else {
-      return new Container();
+      return Container();
     }
   }
 }
 
 void main() {
   runApp(
-    new MaterialApp(
-      home: new DefaultTabController(
-        length: 2,
-        child: new Scaffold(
-          appBar: new AppBar(
+    MaterialApp(
+      home: DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
             title: const Text('Video player example'),
             bottom: const TabBar(
               isScrollable: true,
               tabs: <Widget>[
-                Tab(icon: Icon(Icons.fullscreen)),
-                Tab(icon: Icon(Icons.list)),
+                Tab(
+                  icon: Icon(Icons.cloud),
+                  text: "Remote",
+                ),
+                Tab(icon: Icon(Icons.insert_drive_file), text: "Asset"),
+                Tab(icon: Icon(Icons.list), text: "List example"),
               ],
             ),
           ),
-          body: new TabBarView(
+          body: TabBarView(
             children: <Widget>[
-              new Column(
-                children: <Widget>[
-                  new NetworkPlayerLifeCycle(
-                    'http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_20mb.mp4',
-                    (BuildContext context, VideoPlayerController controller) =>
-                        new AspectRatioVideo(controller),
-                  ),
-                  new Container(
-                    padding: const EdgeInsets.only(top: 20.0),
-                  ),
-                  new NetworkPlayerLifeCycle(
-                    'http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8',
-                    (BuildContext context, VideoPlayerController controller) =>
-                        new AspectRatioVideo(controller),
-                  ),
-                ],
+              SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.only(top: 20.0),
+                    ),
+                    const Text('With remote m3u8'),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: NetworkPlayerLifeCycle(
+                        'http://184.72.239.149/vod/smil:BigBuckBunny.smil/playlist.m3u8',
+                        (BuildContext context,
+                                VideoPlayerController controller) =>
+                            AspectRatioVideo(controller),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              new NetworkPlayerLifeCycle(
-                'http://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_20mb.mp4',
-                (BuildContext context, VideoPlayerController controller) =>
-                    new AspectRatioVideo(controller),
+              SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.only(top: 20.0),
+                    ),
+                    const Text('With assets mp4'),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      child: AssetPlayerLifeCycle(
+                          'assets/Butterfly-209.mp4',
+                          (BuildContext context,
+                                  VideoPlayerController controller) =>
+                              AspectRatioVideo(controller)),
+                    ),
+                  ],
+                ),
               ),
-              new AssetPlayerLifeCycle(
+              AssetPlayerLifeCycle(
                   'assets/Butterfly-209.mp4',
                   (BuildContext context, VideoPlayerController controller) =>
-                      new VideoInListOfCards(controller)),
+                      VideoInListOfCards(controller)),
             ],
           ),
         ),

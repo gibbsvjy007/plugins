@@ -7,9 +7,9 @@ mode, we assert that the platform should be Android.
 Use it by specifying action, category, data and extra arguments for the intent.
 It does not support returning the result of the launched activity. Sample usage:
 
-```
+```dart
 if (platform.isAndroid) {
-  AndroidIntent intent = new AndroidIntent(
+  AndroidIntent intent = AndroidIntent(
       action: 'action_view',
       data: 'https://play.google.com/store/apps/details?'
           'id=com.google.android.apps.myapp',
@@ -26,6 +26,21 @@ If a standard android action is required, the recommendation is to add support
 for it in the plugin and use an action constant to refer to it. For instance:
 
 `'action_view'` translates to `android.os.Intent.ACTION_VIEW`
+
+`'action_location_source_settings'` translates to `android.settings.LOCATION_SOURCE_SETTINGS`
+
+`'action_application_details_settings'` translates to `android.settings.ACTION_APPLICATION_DETAILS_SETTINGS`
+
+```dart
+if (platform.isAndroid) {
+  final AndroidIntent intent = AndroidIntent(
+    action: 'action_application_details_settings',
+    data: 'package:com.example.app', // replace com.example.app with your applicationId
+  );
+  await intent.launch();
+}
+
+```
 
 Feel free to add support for additional Android intents.
 

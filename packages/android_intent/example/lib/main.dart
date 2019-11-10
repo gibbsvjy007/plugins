@@ -3,23 +3,24 @@
 // found in the LICENSE file.
 
 import 'package:android_intent/android_intent.dart';
+import 'package:android_intent/flag.dart';
 import 'package:flutter/material.dart';
 import 'package:platform/platform.dart';
 
 void main() {
-  runApp(new MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'Flutter Demo',
-      theme: new ThemeData(
+      theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(),
+      home: MyHomePage(),
       routes: <String, WidgetBuilder>{
         ExplicitIntentsWidget.routeName: (BuildContext context) =>
             const ExplicitIntentsWidget()
@@ -51,17 +52,17 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget body;
     if (const LocalPlatform().isAndroid) {
-      body = new Padding(
+      body = Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: new Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            new RaisedButton(
+            RaisedButton(
               child: const Text(
                   'Tap here to set an alarm\non weekdays at 9:30pm.'),
               onPressed: _createAlarm,
             ),
-            new RaisedButton(
+            RaisedButton(
                 child: const Text('Tap here to test explicit intents.'),
                 onPressed: () => _openExplicitIntentsView(context)),
           ],
@@ -70,22 +71,22 @@ class MyHomePage extends StatelessWidget {
     } else {
       body = const Text('This plugin only works with Android');
     }
-    return new Scaffold(
-      appBar: new AppBar(
+    return Scaffold(
+      appBar: AppBar(
         title: const Text('Plugin example app'),
       ),
-      body: new Center(child: body),
+      body: Center(child: body),
     );
   }
 }
 
 class ExplicitIntentsWidget extends StatelessWidget {
-  static const String routeName = "/explicitIntents";
-
   const ExplicitIntentsWidget();
 
+  static const String routeName = "/explicitIntents";
+
   void _openGoogleMapsStreetView() {
-    final AndroidIntent intent = new AndroidIntent(
+    final AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         data: Uri.encodeFull('google.streetview:cbll=46.414382,10.013988'),
         package: 'com.google.android.apps.maps');
@@ -93,7 +94,7 @@ class ExplicitIntentsWidget extends StatelessWidget {
   }
 
   void _displayMapInGoogleMaps({int zoomLevel = 12}) {
-    final AndroidIntent intent = new AndroidIntent(
+    final AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         data: Uri.encodeFull('geo:37.7749,-122.4194?z=$zoomLevel'),
         package: 'com.google.android.apps.maps');
@@ -101,7 +102,7 @@ class ExplicitIntentsWidget extends StatelessWidget {
   }
 
   void _launchTurnByTurnNavigationInGoogleMaps() {
-    final AndroidIntent intent = new AndroidIntent(
+    final AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         data: Uri.encodeFull(
             'google.navigation:q=Taronga+Zoo,+Sydney+Australia&avoid=tf'),
@@ -110,56 +111,96 @@ class ExplicitIntentsWidget extends StatelessWidget {
   }
 
   void _openLinkInGoogleChrome() {
-    final AndroidIntent intent = new AndroidIntent(
+    final AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         data: Uri.encodeFull('https://flutter.io'),
         package: 'com.android.chrome');
     intent.launch();
   }
 
+  void _startActivityInNewTask() {
+    final AndroidIntent intent = AndroidIntent(
+      action: 'action_view',
+      data: Uri.encodeFull('https://flutter.io'),
+      flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+    );
+    intent.launch();
+  }
+
   void _testExplicitIntentFallback() {
-    final AndroidIntent intent = new AndroidIntent(
+    final AndroidIntent intent = AndroidIntent(
         action: 'action_view',
         data: Uri.encodeFull('https://flutter.io'),
         package: 'com.android.chrome.implicit.fallback');
     intent.launch();
   }
 
+  void _openLocationSettingsConfiguration() {
+    final AndroidIntent intent = const AndroidIntent(
+      action: 'action_location_source_settings',
+    );
+    intent.launch();
+  }
+
+  void _openApplicationDetails() {
+    final AndroidIntent intent = const AndroidIntent(
+      action: 'action_application_details_settings',
+      data: 'package:io.flutter.plugins.androidintentexample',
+    );
+    intent.launch();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
+    return Scaffold(
+      appBar: AppBar(
         title: const Text('Test explicit intents'),
       ),
-      body: new Center(
-        child: new Padding(
+      body: Center(
+        child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 15.0),
-          child: new Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              new RaisedButton(
+              RaisedButton(
                 child: const Text(
                     'Tap here to display panorama\nimagery in Google Street View.'),
                 onPressed: _openGoogleMapsStreetView,
               ),
-              new RaisedButton(
+              RaisedButton(
                 child: const Text('Tap here to display\na map in Google Maps.'),
                 onPressed: _displayMapInGoogleMaps,
               ),
-              new RaisedButton(
+              RaisedButton(
                 child: const Text(
                     'Tap here to launch turn-by-turn\nnavigation in Google Maps.'),
                 onPressed: _launchTurnByTurnNavigationInGoogleMaps,
               ),
-              new RaisedButton(
+              RaisedButton(
                 child: const Text('Tap here to open link in Google Chrome.'),
                 onPressed: _openLinkInGoogleChrome,
               ),
-              new RaisedButton(
+              RaisedButton(
+                child: const Text('Tap here to start activity in new task.'),
+                onPressed: _startActivityInNewTask,
+              ),
+              RaisedButton(
                 child: const Text(
                     'Tap here to test explicit intent fallback to implicit.'),
                 onPressed: _testExplicitIntentFallback,
               ),
+              RaisedButton(
+                child: const Text(
+                  'Tap here to open Location Settings Configuration',
+                ),
+                onPressed: _openLocationSettingsConfiguration,
+              ),
+              RaisedButton(
+                child: const Text(
+                  'Tap here to open Application Details',
+                ),
+                onPressed: _openApplicationDetails,
+              )
             ],
           ),
         ),

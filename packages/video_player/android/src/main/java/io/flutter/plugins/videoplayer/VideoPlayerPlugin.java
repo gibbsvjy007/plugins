@@ -8,15 +8,16 @@ import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
+import android.util.LongSparseArray;
 import android.view.Surface;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.Player.DefaultEventListener;
+import com.google.android.exoplayer2.Player.EventListener;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -39,7 +40,9 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
+import io.flutter.view.FlutterNativeView;
 import io.flutter.view.TextureRegistry;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,6 +53,10 @@ import java.util.Map;
 public class VideoPlayerPlugin implements MethodCallHandler {
 
   private static class VideoPlayer {
+    private static final String FORMAT_SS = "ss";
+    private static final String FORMAT_DASH = "dash";
+    private static final String FORMAT_HLS = "hls";
+    private static final String FORMAT_OTHER = "other";
 
     private SimpleExoPlayer exoPlayer;
 
@@ -57,7 +64,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
 
     private final TextureRegistry.SurfaceTextureEntry textureEntry;
 
-    private EventChannel.EventSink eventSink;
+    private QueuingEventSink eventSink = new QueuingEventSink();
 
     private final EventChannel eventChannel;
 
@@ -68,7 +75,8 @@ public class VideoPlayerPlugin implements MethodCallHandler {
         EventChannel eventChannel,
         TextureRegistry.SurfaceTextureEntry textureEntry,
         String dataSource,
-        Result result) {
+        Result result,
+        String formatHint) {
       this.eventChannel = eventChannel;
       this.textureEntry = textureEntry;
 
@@ -78,9 +86,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       Uri uri = Uri.parse(dataSource);
 
       DataSource.Factory dataSourceFactory;
-      if (uri.getScheme().equals("asset") || uri.getScheme().equals("file")) {
-        dataSourceFactory = new DefaultDataSourceFactory(context, "ExoPlayer");
-      } else {
+      if (isHTTP(uri)) {
         dataSourceFactory =
             new DefaultHttpDataSourceFactory(
                 "ExoPlayer",
@@ -88,28 +94,65 @@ public class VideoPlayerPlugin implements MethodCallHandler {
                 DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS,
                 DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS,
                 true);
+      } else {
+        dataSourceFactory = new DefaultDataSourceFactory(context, "ExoPlayer");
       }
 
-      MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory);
+      MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint, context);
       exoPlayer.prepare(mediaSource);
 
       setupVideoPlayer(eventChannel, textureEntry, result);
     }
 
-    private MediaSource buildMediaSource(Uri uri, DataSource.Factory mediaDataSourceFactory) {
-      int type = Util.inferContentType(uri.getLastPathSegment());
+    private static boolean isHTTP(Uri uri) {
+      if (uri == null || uri.getScheme() == null) {
+        return false;
+      }
+      String scheme = uri.getScheme();
+      return scheme.equals("http") || scheme.equals("https");
+    }
+
+    private MediaSource buildMediaSource(
+        Uri uri, DataSource.Factory mediaDataSourceFactory, String formatHint, Context context) {
+      int type;
+      if (formatHint == null) {
+        type = Util.inferContentType(uri.getLastPathSegment());
+      } else {
+        switch (formatHint) {
+          case FORMAT_SS:
+            type = C.TYPE_SS;
+            break;
+          case FORMAT_DASH:
+            type = C.TYPE_DASH;
+            break;
+          case FORMAT_HLS:
+            type = C.TYPE_HLS;
+            break;
+          case FORMAT_OTHER:
+            type = C.TYPE_OTHER;
+            break;
+          default:
+            type = -1;
+            break;
+        }
+      }
       switch (type) {
         case C.TYPE_SS:
-          return new SsMediaSource(
-              uri, null, new DefaultSsChunkSource.Factory(mediaDataSourceFactory), null, null);
+          return new SsMediaSource.Factory(
+                  new DefaultSsChunkSource.Factory(mediaDataSourceFactory),
+                  new DefaultDataSourceFactory(context, null, mediaDataSourceFactory))
+              .createMediaSource(uri);
         case C.TYPE_DASH:
-          return new DashMediaSource(
-              uri, null, new DefaultDashChunkSource.Factory(mediaDataSourceFactory), null, null);
+          return new DashMediaSource.Factory(
+                  new DefaultDashChunkSource.Factory(mediaDataSourceFactory),
+                  new DefaultDataSourceFactory(context, null, mediaDataSourceFactory))
+              .createMediaSource(uri);
         case C.TYPE_HLS:
-          return new HlsMediaSource(uri, mediaDataSourceFactory, null, null);
+          return new HlsMediaSource.Factory(mediaDataSourceFactory).createMediaSource(uri);
         case C.TYPE_OTHER:
-          return new ExtractorMediaSource(
-              uri, mediaDataSourceFactory, new DefaultExtractorsFactory(), null, null);
+          return new ExtractorMediaSource.Factory(mediaDataSourceFactory)
+              .setExtractorsFactory(new DefaultExtractorsFactory())
+              .createMediaSource(uri);
         default:
           {
             throw new IllegalStateException("Unsupported type: " + type);
@@ -126,12 +169,12 @@ public class VideoPlayerPlugin implements MethodCallHandler {
           new EventChannel.StreamHandler() {
             @Override
             public void onListen(Object o, EventChannel.EventSink sink) {
-              eventSink = sink;
+              eventSink.setDelegate(sink);
             }
 
             @Override
             public void onCancel(Object o) {
-              eventSink = null;
+              eventSink.setDelegate(null);
             }
           });
 
@@ -140,29 +183,26 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       setAudioAttributes(exoPlayer);
 
       exoPlayer.addListener(
-          new DefaultEventListener() {
+          new EventListener() {
 
             @Override
             public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
-              super.onPlayerStateChanged(playWhenReady, playbackState);
               if (playbackState == Player.STATE_BUFFERING) {
-                if (eventSink != null) {
-                  Map<String, Object> event = new HashMap<>();
-                  event.put("event", "bufferingUpdate");
-                  List<Integer> range = Arrays.asList(0, exoPlayer.getBufferedPercentage());
-                  // iOS supports a list of buffered ranges, so here is a list with a single range.
-                  event.put("values", Collections.singletonList(range));
-                  eventSink.success(event);
+                sendBufferingUpdate();
+              } else if (playbackState == Player.STATE_READY) {
+                if (!isInitialized) {
+                  isInitialized = true;
+                  sendInitialized();
                 }
-              } else if (playbackState == Player.STATE_READY && !isInitialized) {
-                isInitialized = true;
-                sendInitialized();
+              } else if (playbackState == Player.STATE_ENDED) {
+                Map<String, Object> event = new HashMap<>();
+                event.put("event", "completed");
+                eventSink.success(event);
               }
             }
 
             @Override
             public void onPlayerError(final ExoPlaybackException error) {
-              super.onPlayerError(error);
               if (eventSink != null) {
                 eventSink.error("VideoError", "Video player had error " + error, null);
               }
@@ -174,13 +214,22 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       result.success(reply);
     }
 
+    private void sendBufferingUpdate() {
+      Map<String, Object> event = new HashMap<>();
+      event.put("event", "bufferingUpdate");
+      List<? extends Number> range = Arrays.asList(0, exoPlayer.getBufferedPosition());
+      // iOS supports a list of buffered ranges, so here is a list with a single range.
+      event.put("values", Collections.singletonList(range));
+      eventSink.success(event);
+    }
+
     @SuppressWarnings("deprecation")
     private static void setAudioAttributes(SimpleExoPlayer exoPlayer) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
         exoPlayer.setAudioAttributes(
             new AudioAttributes.Builder().setContentType(C.CONTENT_TYPE_MOVIE).build());
       } else {
-        exoPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        exoPlayer.setAudioStreamType(C.STREAM_TYPE_MUSIC);
       }
     }
 
@@ -209,14 +258,25 @@ public class VideoPlayerPlugin implements MethodCallHandler {
       return exoPlayer.getCurrentPosition();
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     private void sendInitialized() {
-      if (isInitialized && eventSink != null) {
+      if (isInitialized) {
         Map<String, Object> event = new HashMap<>();
         event.put("event", "initialized");
         event.put("duration", exoPlayer.getDuration());
+
         if (exoPlayer.getVideoFormat() != null) {
-          event.put("width", exoPlayer.getVideoFormat().width);
-          event.put("height", exoPlayer.getVideoFormat().height);
+          Format videoFormat = exoPlayer.getVideoFormat();
+          int width = videoFormat.width;
+          int height = videoFormat.height;
+          int rotationDegrees = videoFormat.rotationDegrees;
+          // Switch the width/height if video was taken in portrait mode
+          if (rotationDegrees == 90 || rotationDegrees == 270) {
+            width = exoPlayer.getVideoFormat().height;
+            height = exoPlayer.getVideoFormat().width;
+          }
+          event.put("width", width);
+          event.put("height", height);
         }
         eventSink.success(event);
       }
@@ -238,19 +298,44 @@ public class VideoPlayerPlugin implements MethodCallHandler {
   }
 
   public static void registerWith(Registrar registrar) {
+    final VideoPlayerPlugin plugin = new VideoPlayerPlugin(registrar);
     final MethodChannel channel =
         new MethodChannel(registrar.messenger(), "flutter.io/videoPlayer");
-    channel.setMethodCallHandler(new VideoPlayerPlugin(registrar));
+    channel.setMethodCallHandler(plugin);
+    registrar.addViewDestroyListener(
+        new PluginRegistry.ViewDestroyListener() {
+          @Override
+          public boolean onViewDestroy(FlutterNativeView view) {
+            plugin.onDestroy();
+            return false; // We are not interested in assuming ownership of the NativeView.
+          }
+        });
   }
 
   private VideoPlayerPlugin(Registrar registrar) {
     this.registrar = registrar;
-    this.videoPlayers = new HashMap<>();
+    this.videoPlayers = new LongSparseArray<>();
   }
 
-  private final Map<Long, VideoPlayer> videoPlayers;
+  private final LongSparseArray<VideoPlayer> videoPlayers;
 
   private final Registrar registrar;
+
+  private void disposeAllPlayers() {
+    for (int i = 0; i < videoPlayers.size(); i++) {
+      videoPlayers.valueAt(i).dispose();
+    }
+    videoPlayers.clear();
+  }
+
+  private void onDestroy() {
+    // The whole FlutterView is being destroyed. Here we release resources acquired for all
+    // instances
+    // of VideoPlayer. Once https://github.com/flutter/flutter/issues/19358 is resolved this may
+    // be replaced with just asserting that videoPlayers.isEmpty().
+    // https://github.com/flutter/flutter/issues/20989 tracks this.
+    disposeAllPlayers();
+  }
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
@@ -261,10 +346,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
     }
     switch (call.method) {
       case "init":
-        for (VideoPlayer player : videoPlayers.values()) {
-          player.dispose();
-        }
-        videoPlayers.clear();
+        disposeAllPlayers();
         break;
       case "create":
         {
@@ -278,10 +360,9 @@ public class VideoPlayerPlugin implements MethodCallHandler {
             String assetLookupKey;
             if (call.argument("package") != null) {
               assetLookupKey =
-                  registrar.lookupKeyForAsset(
-                      (String) call.argument("asset"), (String) call.argument("package"));
+                  registrar.lookupKeyForAsset(call.argument("asset"), call.argument("package"));
             } else {
-              assetLookupKey = registrar.lookupKeyForAsset((String) call.argument("asset"));
+              assetLookupKey = registrar.lookupKeyForAsset(call.argument("asset"));
             }
             player =
                 new VideoPlayer(
@@ -289,7 +370,8 @@ public class VideoPlayerPlugin implements MethodCallHandler {
                     eventChannel,
                     handle,
                     "asset:///" + assetLookupKey,
-                    result);
+                    result,
+                    null);
             videoPlayers.put(handle.id(), player);
           } else {
             player =
@@ -297,8 +379,9 @@ public class VideoPlayerPlugin implements MethodCallHandler {
                     registrar.context(),
                     eventChannel,
                     handle,
-                    (String) call.argument("uri"),
-                    result);
+                    call.argument("uri"),
+                    result,
+                    call.argument("formatHint"));
             videoPlayers.put(handle.id(), player);
           }
           break;
@@ -323,11 +406,11 @@ public class VideoPlayerPlugin implements MethodCallHandler {
   private void onMethodCall(MethodCall call, Result result, long textureId, VideoPlayer player) {
     switch (call.method) {
       case "setLooping":
-        player.setLooping((Boolean) call.argument("looping"));
+        player.setLooping(call.argument("looping"));
         result.success(null);
         break;
       case "setVolume":
-        player.setVolume((Double) call.argument("volume"));
+        player.setVolume(call.argument("volume"));
         result.success(null);
         break;
       case "play":
@@ -345,6 +428,7 @@ public class VideoPlayerPlugin implements MethodCallHandler {
         break;
       case "position":
         result.success(player.getPosition());
+        player.sendBufferingUpdate();
         break;
       case "dispose":
         player.dispose();

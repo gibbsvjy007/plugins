@@ -1,3 +1,59 @@
+## 0.3.1+3
+
+* Remove AndroidX warning.
+
+## 0.3.1+2
+
+* Include lifecycle dependency as a compileOnly one on Android to resolve
+  potential version conflicts with other transitive libraries.
+
+## 0.3.1+1
+
+* Android: Use android.arch.lifecycle instead of androidx.lifecycle:lifecycle in `build.gradle` to support apps that has not been migrated to AndroidX.
+
+## 0.3.1
+
+* Support the v2 Android embedder.
+
+## 0.3.0+6
+
+* Define clang module for iOS.
+
+## 0.3.0+5
+
+* Fix Gradle version.
+
+## 0.3.0+4
+
+* Update Dart code to conform to current Dart formatter.
+
+## 0.3.0+3
+
+* Fix `batteryLevel` usage example in README
+
+## 0.3.0+2
+
+* Bump the minimum Flutter version to 1.2.0.
+* Add template type parameter to `invokeMethod` calls.
+
+## 0.3.0+1
+
+* Log a more detailed warning at build time about the previous AndroidX
+  migration.
+
+## 0.3.0
+
+* **Breaking change**. Migrate from the deprecated original Android Support
+  Library to AndroidX. This shouldn't result in any functional changes, but it
+  requires any Android apps using this plugin to [also
+  migrate](https://developer.android.com/jetpack/androidx/migrate) if they're
+  using the original support library.
+
+## 0.2.3
+
+* Updated mockito dependency to 3.0.0 to get Dart 2 support.
+* Update test package dependency to 1.3.0, and fixed tests to match.
+
 ## 0.2.2
 
 * Updated Gradle tooling to match Android Studio 3.1.2.
